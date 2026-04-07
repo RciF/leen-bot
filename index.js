@@ -1,33 +1,43 @@
-require("dotenv").config()
-
-const express = require('express')
-const app = express()
-
-const createClient = require("./core/client")
-const loadCommands = require("./core/commandLoader")
-const loadEvents = require("./core/eventLoader")
-const db = require("./systems/databaseSystem")
+require("dotenv").config();
 
 // ==================== Web Server ====================
-app.get('/', (req, res) => {
-  res.send('Bot is alive ✅')
-})
+const express = require("express");
+const app = express();
 
-const PORT = process.env.PORT || 3000
+app.get("/", (req, res) => {
+  res.send("Bot is alive ✅");
+});
+
+const PORT = process.env.PORT || 3000;
+
 app.listen(PORT, () => {
-  console.log(`🌐 Web server running on port ${PORT}`)
-})
+  console.log(`🌐 Web server running on port ${PORT}`);
+});
 
-// ==================== تشغيل البوت ====================
+// ==================== Discord Bot ====================
+const createClient = require("./core/client");
+const loadCommands = require("./core/commandLoader");
+const loadEvents = require("./core/eventLoader");
+const db = require("./systems/databaseSystem");
+
 async function start() {
-  await db.connect()
+  try {
+    await db.connect();
+    console.log("✅ Database connected");
 
-  const client = createClient()
+    const client = createClient();
 
-  await loadCommands(client)
-  await loadEvents(client)
+    await loadCommands(client);
+    console.log("✅ Commands loaded");
 
-  await client.login(process.env.TOKEN)
+    await loadEvents(client);
+    console.log("✅ Events loaded");
+
+    await client.login(process.env.DISCORD_TOKEN);
+    console.log("🤖 Bot logged in");
+  } catch (error) {
+    console.error("❌ Error starting bot:", error);
+  }
 }
 
-start()
+start();
